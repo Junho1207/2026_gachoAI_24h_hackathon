@@ -42,14 +42,14 @@ const Layout = () => {
   ];
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAFAFA] font-sans">
-      <div className="flex-1 overflow-y-auto pb-[72px]">
+    <div className="flex min-h-full flex-col bg-bg-subtle font-sans">
+      <div className="flex-1 overflow-y-auto pb-18">
         <div key={location.pathname} className="animate-fade-in-up h-full">
           <Outlet />
         </div>
       </div>
 
-      <nav className="fixed bottom-0 w-full max-w-[390px] bg-white shadow-[0_-4px_12px_rgba(0,0,0,0.05)] border-t border-gray-100 z-50">
+      <nav className="fixed bottom-0 z-50 w-full max-w-97.5 border-t border-border-light bg-bg shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
         <div className="flex items-center justify-between px-2 pb-safe pt-2">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -57,8 +57,8 @@ const Layout = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center justify-center p-2 w-16 gap-1 transition-colors ${
-                  isActive ? 'text-[#5C67FF]' : 'text-[#A6A6A6]'
+                className={`flex w-16 flex-col items-center justify-center gap-1 p-2 transition-colors ${
+                  isActive ? 'text-primary' : 'text-text-tertiary'
                 }`}
               >
                 {item.icon}
