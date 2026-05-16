@@ -5,6 +5,7 @@ import Button from '../../components/Button/Button';
 import Input from '../../components/Input/Input';
 import TextArea from '../../components/Input/TextArea';
 import { postApi } from '../../api/post';
+import { useAuthStore } from '../../store/authStore';
 
 interface RoleInput {
   name: string;
@@ -13,6 +14,7 @@ interface RoleInput {
 
 const PostCreatePage: React.FC = () => {
   const navigate = useNavigate();
+  const { uidx } = useAuthStore();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [tags, setTags] = useState<string[]>([]);
@@ -45,17 +47,28 @@ const PostCreatePage: React.FC = () => {
 
   const totalPoints = roles.reduce((sum, role) => sum + Number(role.coinReward), 0);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
+    if (!uidx) {
+      alert('로그인이 필요합니다.');
+      navigate('/login');
+      return;
+    }
+
     try {
-      await postApi.createPost({
+      const res = await postApi.createPost({
+        uidx,
         title,
         content,
-        tags,
         deadline,
-        roles: roles.map((r) => ({ ...r, maxCount: 1 })), // Default maxCount to 1 for simplicity
+        tags,
+        roles,
       });
-      navigate('/posts');
+
+      if (res.res_status) {
+        navigate('/posts');
+      } else {
+        alert('게시글 등록에 실패했습니다.');
+      }
     } catch (error) {
       console.error('Failed to create post:', error);
       alert('게시글 등록에 실패했습니다.');
@@ -63,10 +76,16 @@ const PostCreatePage: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-bg">
+    <div className="flex min-h-full flex-col bg-bg-subtle">
       <Header title="게시글 작성" />
       
-      <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-6 p-4">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void handleSubmit();
+        }}
+        className="flex flex-1 flex-col gap-6 p-4"
+      >
         <section className="flex flex-col gap-1.5">
           <label className="text-[14px] font-semibold text-text-primary">제목</label>
           <Input 
@@ -95,10 +114,10 @@ const PostCreatePage: React.FC = () => {
                 key={tag}
                 type="button"
                 onClick={() => toggleTag(tag)}
-                className={`h-[32px] px-4 rounded-full text-[13px] font-medium transition-colors ${
+                className={`h-8 rounded-full px-4 text-[13px] font-medium transition-colors ${
                   tags.includes(tag)
-                    ? 'bg-neutral-42 text-white'
-                    : 'bg-white border border-border text-text-secondary'
+                    ? 'bg-primary text-text-inverse'
+                    : 'border border-border-light bg-bg text-text-secondary'
                 }`}
               >
                 {tag}
@@ -121,12 +140,16 @@ const PostCreatePage: React.FC = () => {
 
           <div className="flex flex-col gap-3">
             {roles.map((role, index) => (
-              <div key={index} className="relative flex flex-col gap-3 rounded-2xl border border-border bg-white p-4">
+              <div
+                key={index}
+                className="relative flex flex-col gap-3 rounded-2xl border border-border-light bg-bg p-4 shadow-card"
+              >
                 {roles.length > 1 && (
                   <button
                     type="button"
                     onClick={() => handleRemoveRole(index)}
-                    className="absolute right-3 top-3 text-text-disabled"
+                    className="absolute right-3 top-3 text-text-disabled hover:text-text-secondary"
+                    aria-label="역할 제거"
                   >
                     ✕
                   </button>
@@ -137,7 +160,7 @@ const PostCreatePage: React.FC = () => {
                     placeholder="예 : 프론트엔드 개발자"
                     value={role.name}
                     onChange={(e) => handleRoleChange(index, 'name', e.target.value)}
-                    className="h-[40px] rounded-lg"
+                    className="h-10 rounded-lg"
                     required
                   />
                 </div>
@@ -147,8 +170,10 @@ const PostCreatePage: React.FC = () => {
                     type="number"
                     placeholder="250P"
                     value={role.coinReward || ''}
-                    onChange={(e) => handleRoleChange(index, 'coinReward', parseInt(e.target.value) || 0)}
-                    className="h-[40px] rounded-lg"
+                    onChange={(e) =>
+                      handleRoleChange(index, 'coinReward', parseInt(e.target.value) || 0)
+                    }
+                    className="h-10 rounded-lg"
                     required
                   />
                 </div>
@@ -156,8 +181,10 @@ const PostCreatePage: React.FC = () => {
             ))}
           </div>
 
-          <div className="flex h-[52px] items-center justify-center rounded-2xl bg-primary-light/50 border border-primary-light">
-            <span className="text-[15px] font-bold text-primary">총 포인트 : {totalPoints}P</span>
+          <div className="flex h-13 items-center justify-center rounded-2xl border border-primary-light bg-primary-light/50">
+            <span className="text-[15px] font-bold text-primary">
+              총 포인트 : {totalPoints}P
+            </span>
           </div>
         </section>
 

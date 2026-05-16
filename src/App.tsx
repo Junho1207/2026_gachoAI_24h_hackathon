@@ -11,8 +11,8 @@ import PostCreatePage from './pages/PostCreate/PostCreatePage';
 // Placeholder for missing pages in bottom nav
 function EmptyPage({ title }: { title: string }) {
   return (
-    <div className="flex h-full items-center justify-center bg-[#FAFAFA]">
-      <p className="text-lg font-bold text-gray-400">{title} 준비 중입니다.</p>
+    <div className="flex h-full items-center justify-center bg-bg-subtle">
+      <p className="text-lg font-bold text-text-tertiary">{title} 준비 중입니다.</p>
     </div>
   );
 }

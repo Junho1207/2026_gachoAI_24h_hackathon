@@ -4,6 +4,17 @@ import { useAuthStore } from '../../store/authStore';
 import { getProfilePoint, getProfilePointLog } from '../../api/profile';
 import type { PointLogItem } from '../../api/profile';
 
+// 백엔드 응답이 없을 때 사용할 mock 거래 내역 (데모용)
+const MOCK_POINT_LOGS: PointLogItem[] = [
+  { description: '봉사활동 보상', change: 500 },
+  { description: '학생회 기부', change: -200 },
+  { description: '활동 참여 보상', change: 150 },
+  { description: '커피 송금 (홍길동)', change: -300 },
+  { description: '게시글 작성', change: -50 },
+  { description: '활동 참여 보상', change: 200 },
+  { description: '회원가입 보너스', change: 1000 },
+];
+
 const Home = () => {
   const navigate = useNavigate();
   const { uidx } = useAuthStore();
@@ -33,8 +44,16 @@ const Home = () => {
           setPoint(pointRes.value.point);
         }
 
-        if (logRes.status === 'fulfilled' && logRes.value.res_status && logRes.value.logs) {
+        if (
+          logRes.status === 'fulfilled' &&
+          logRes.value.res_status &&
+          logRes.value.logs &&
+          logRes.value.logs.length > 0
+        ) {
           setLogs(logRes.value.logs);
+        } else {
+          // API 응답이 비어있으면 mock 데이터로 fallback (데모용)
+          setLogs(MOCK_POINT_LOGS);
         }
       } catch (err) {
         console.error('Failed to fetch home data:', err);
@@ -49,58 +68,59 @@ const Home = () => {
 
   if (isLoading) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-[#FAFAFA] min-h-screen">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#5C67FF] border-t-transparent"></div>
+      <div className="flex min-h-full w-full items-center justify-center bg-bg-subtle">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col bg-[#FAFAFA] min-h-full pb-6 font-sans">
+    <div className="flex min-h-full flex-col bg-bg-subtle pb-6 font-sans">
       {/* Top Header Icons */}
       <div className="flex justify-end gap-3 px-6 pt-6 pb-2">
-        <button className="text-gray-500">
+        <button className="text-text-secondary" aria-label="확장">
           <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg>
         </button>
-        <button className="text-gray-500">
+        <button className="text-text-secondary" aria-label="설정">
           <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         </button>
       </div>
 
-      <div className="px-6 flex flex-col gap-4">
+      <div className="flex flex-col gap-4 px-6">
         {error && (
-          <div className="rounded-xl bg-red-50 p-4 text-sm text-red-500 border border-red-100 mb-2">
+          <div className="mb-2 rounded-xl border border-red-90 bg-red-95 p-4 text-sm text-error">
             {error}
           </div>
         )}
+
         {/* Tabs with sliding animation */}
         <div className="relative flex items-center gap-2">
           {/* Sliding Active Background */}
           <div
-            className="absolute top-0 bottom-0 rounded-xl bg-[#5C67FF] shadow-md transition-all duration-300 ease-out z-0"
+            className="absolute top-0 bottom-0 z-0 rounded-xl bg-primary shadow-md transition-all duration-300 ease-out"
             style={{
               left: activeTab === 'home' ? '0px' : '66px',
-              width: activeTab === 'home' ? '58px' : '98px'
+              width: activeTab === 'home' ? '58px' : '98px',
             }}
           />
-          
-          <button 
+
+          <button
             onClick={() => setActiveTab('home')}
-            className={`relative z-10 w-[58px] rounded-xl py-2.5 text-sm font-bold transition-colors duration-300 ${
-              activeTab === 'home' 
-                ? 'text-white bg-transparent' 
-                : 'bg-[#F0F0F0] text-[#8A8A8A] hover:bg-[#E5E5E5]'
+            className={`relative z-10 w-14.5 rounded-xl py-2.5 text-sm font-bold transition-colors duration-300 ${
+              activeTab === 'home'
+                ? 'bg-transparent text-text-inverse'
+                : 'bg-bg-subtle text-text-tertiary hover:bg-neutral-89'
             }`}
           >
             홈
           </button>
-          
-          <button 
+
+          <button
             onClick={() => setActiveTab('history')}
-            className={`relative z-10 w-[98px] rounded-xl py-2.5 text-sm font-bold transition-colors duration-300 ${
-              activeTab === 'history' 
-                ? 'text-white bg-transparent' 
-                : 'bg-[#F0F0F0] text-[#8A8A8A] hover:bg-[#E5E5E5]'
+            className={`relative z-10 w-24.5 rounded-xl py-2.5 text-sm font-bold transition-colors duration-300 ${
+              activeTab === 'history'
+                ? 'bg-transparent text-text-inverse'
+                : 'bg-bg-subtle text-text-tertiary hover:bg-neutral-89'
             }`}
           >
             포인트 내역
@@ -108,58 +128,119 @@ const Home = () => {
         </div>
 
         {/* Animated Content Area */}
-        <div className="grid mt-1">
+        <div className="mt-1 grid">
           {/* Home Content */}
-          <div 
-            className={`col-start-1 row-start-1 transition-all duration-500 ease-out flex flex-col gap-1 ${
-              activeTab === 'home' 
-                ? 'opacity-100 translate-y-0 pointer-events-auto z-10' 
-                : 'opacity-0 translate-y-4 pointer-events-none z-0'
+          <div
+            className={`col-start-1 row-start-1 flex flex-col gap-1 transition-all duration-500 ease-out ${
+              activeTab === 'home'
+                ? 'pointer-events-auto z-10 translate-y-0 opacity-100'
+                : 'pointer-events-none z-0 translate-y-4 opacity-0'
             }`}
           >
-            {/* Blue Points Banner */}
-            <div className="flex items-center justify-between rounded-xl bg-[#5C67FF] p-5 text-white shadow-sm">
+            {/* Primary Points Banner */}
+            <div className="flex items-center justify-between rounded-xl bg-primary p-5 text-text-inverse shadow-sm">
               <div className="text-lg font-bold">
-                보유 포인트 <span className="ml-1 text-xl font-extrabold">{point.toLocaleString()}</span>
+                보유 포인트{' '}
+                <span className="ml-1 text-xl font-extrabold">
+                  {point.toLocaleString()}
+                </span>
               </div>
-              <div className="flex items-center gap-1 bg-[#4A54F0] px-3 py-1.5 rounded-lg text-sm font-bold shadow-inner">
-                <button className="hover:text-gray-200">송금</button>
-                <span className="mx-1 text-white/50">|</span>
-                <button className="hover:text-gray-200">기부</button>
+              <div className="flex items-center gap-1 rounded-lg bg-primary-hover px-3 py-1.5 text-sm font-bold shadow-inner">
+                <button className="hover:opacity-80">송금</button>
+                <span className="mx-1 text-text-inverse/50">|</span>
+                <button className="hover:opacity-80">기부</button>
               </div>
             </div>
 
-            {/* Empty Gray Card */}
-            <div className="h-64 w-full rounded-2xl bg-[#EBEBEB]"></div>
+            {/* 최근 포인트 거래 내역 위젯 */}
+            <div className="flex w-full flex-col gap-3 rounded-2xl border border-border-light bg-bg p-5 shadow-card">
+              <div className="flex items-center justify-between">
+                <h3 className="text-[15px] font-bold text-text-primary">
+                  최근 거래 내역
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('history')}
+                  className="text-[12px] font-semibold text-primary"
+                >
+                  전체보기
+                </button>
+              </div>
+              <ul className="flex flex-col gap-2.5">
+                {logs.slice(0, 5).map((log, index) => (
+                  <li
+                    key={index}
+                    className="flex items-center justify-between"
+                  >
+                    <span className="text-[13px] text-text-secondary">
+                      {log.description}
+                    </span>
+                    <span
+                      className={`text-[13px] font-bold ${
+                        log.change > 0 ? 'text-success' : 'text-error'
+                      }`}
+                    >
+                      {log.change > 0 ? '+' : '-'}
+                      {Math.abs(log.change).toLocaleString()}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
           {/* History Content */}
-          <div 
-            className={`col-start-1 row-start-1 transition-all duration-500 ease-out flex flex-col gap-1 ${
-              activeTab === 'history' 
-                ? 'opacity-100 translate-y-0 pointer-events-auto z-10' 
-                : 'opacity-0 translate-y-4 pointer-events-none z-0'
+          <div
+            className={`col-start-1 row-start-1 flex flex-col gap-1 transition-all duration-500 ease-out ${
+              activeTab === 'history'
+                ? 'pointer-events-auto z-10 translate-y-0 opacity-100'
+                : 'pointer-events-none z-0 translate-y-4 opacity-0'
             }`}
           >
-            {/* Thin Gray Card */}
-            <div className="h-12 w-full rounded-xl bg-[#EBEBEB]"></div>
+            {/* Summary Bar */}
+            <div className="flex h-12 w-full items-center justify-between rounded-xl border border-border-light bg-bg px-4 shadow-card">
+              <span className="text-[13px] font-semibold text-text-secondary">
+                총 {logs.length}건
+              </span>
+              <span className="text-[13px] font-bold text-text-primary">
+                현재 잔액 {point.toLocaleString()}P
+              </span>
+            </div>
 
-            {/* Large Blue History Card */}
-            <div className="flex flex-col rounded-xl bg-[#5C67FF] p-5 text-white shadow-sm min-h-[300px]">
-              <div className="text-lg font-bold mb-6">
-                보유 포인트 <span className="ml-2 text-xl font-extrabold">{point.toLocaleString()}</span>
+            {/* Large Primary History Card */}
+            <div className="flex min-h-75 flex-col rounded-xl bg-primary p-5 text-text-inverse shadow-sm">
+              <div className="mb-6 text-lg font-bold">
+                보유 포인트{' '}
+                <span className="ml-2 text-xl font-extrabold">
+                  {point.toLocaleString()}
+                </span>
               </div>
-              <div className="flex flex-col gap-3 text-[15px] font-bold tracking-wide">
+              <ul className="flex flex-col gap-3 text-[15px] font-bold tracking-wide">
                 {logs.length > 0 ? (
                   logs.map((log, index) => (
-                    <div key={index}>
-                      {log.description} {log.change > 0 ? `+ ${log.change.toLocaleString()}` : `- ${Math.abs(log.change).toLocaleString()}`}
-                    </div>
+                    <li
+                      key={index}
+                      className="flex items-center justify-between border-b border-text-inverse/15 pb-2 last:border-b-0"
+                    >
+                      <span>{log.description}</span>
+                      <span
+                        className={
+                          log.change > 0
+                            ? 'text-text-inverse'
+                            : 'text-text-inverse/80'
+                        }
+                      >
+                        {log.change > 0 ? '+ ' : '- '}
+                        {Math.abs(log.change).toLocaleString()}
+                      </span>
+                    </li>
                   ))
                 ) : (
-                  <div className="text-white/70 font-medium">아직 포인트 내역이 없습니다.</div>
+                  <div className="font-medium text-text-inverse/70">
+                    아직 포인트 내역이 없습니다.
+                  </div>
                 )}
-              </div>
+              </ul>
             </div>
           </div>
         </div>
